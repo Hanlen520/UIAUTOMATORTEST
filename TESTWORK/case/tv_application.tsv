@@ -1,0 +1,74 @@
+*Settings*							
+Test Timeout	20 minutes						
+Library	${LIBDIR}/adb_lib.py						
+Library	${LIBDIR}/log_lib.py						
+							
+*Variables*							
+${AUTODIR}	NULL						
+${result}	False						
+${DEVICE_ID}	172.16.117.142:5555						
+${jar_dir}	${AUTODIR}/lib/jarlib						
+${ENDPDIR}	${AUTODIR}/picture						
+${LIBDIR}	${AUTODIR}/lib						
+							
+*Test Cases*							
+TV_APPLICATION_1	[Documentation]	开启预装应用					
+	[Tags]	Audio_Decoder					
+	[Setup]	TEST_INIT_LOG_ADB	${DEVICE_ID}				
+	Sleep	2s					
+	UI_RUN_METHOD	com.udld.android.test.app.my_Application#run_Pr_app	${DEVICE_ID}				
+	[Teardown]	TEST_END_LOG_ADB	${DEVICE_ID}				
+							
+TV_APPLICATION_2	[Documentation]	安装某APP并反复打开20次					
+	[Setup]	TEST_INIT_LOG_ADB	${DEVICE_ID}				
+	adbInstall	com.yunos.tvtaobao-1.apk	${DEVICE_ID}				
+	Sleep	2s					
+	: FOR	${n}	IN RANGE	1	2		
+		UI_RUN_METHOD	com.udld.android.test.app.my_Application#launch_app -e app_name 电视淘宝	${DEVICE_ID}			
+		Sleep	1s				
+		sendRemoteKeyCode	3	${DEVICE_ID}			
+		sendRemoteKeyCode	3	${DEVICE_ID}			
+		Sleep	1s				
+	adbUninstall	com.yunos.tvtaobao	${DEVICE_ID}				
+	[Teardown]	TEST_END_LOG_ADB	${DEVICE_ID}				
+							
+TV_APPLICATION_3	[Documentation]	随机在线下载安装并打开一个APP					
+	[Setup]	TEST_INIT_LOG_ADB	${DEVICE_ID}				
+	Sleep	2s					
+	UI_RUN_METHOD	com.udld.android.test.app.app_Store#random_Download_installApp	${DEVICE_ID}				
+	Sleep	15s					
+	sendRemoteKeyCode	23	${DEVICE_ID}				
+	Sleep	15s					
+	sendRemoteKeyCode	--longpress 3	${DEVICE_ID}				
+	Sleep	5s					
+	sendRemoteKeyCode	22	${DEVICE_ID}				
+	Sleep	3s					
+	sendRemoteKeyCode	23	${DEVICE_ID}				
+	Sleep	3s					
+	UI_RUN_METHOD	com.udld.android.test.app.app_Store#delete_app	${DEVICE_ID}				
+	sendRemoteKeyCode	3	${DEVICE_ID}				
+	[Teardown]	TEST_END_LOG_ADB	${DEVICE_ID}				
+							
+*Keywords*							
+TEST_INIT_LOG_ADB	[Arguments]	${DEVICE_ID}					
+	connectService	${DEVICE_ID}					
+	Sleep	5s					
+	${log_dir}	make_ReportDir	${DEVICE_ID}				
+	${logcat_pid}	logcat_start	${log_dir}	${DEVICE_ID}			
+	adbCmd	push ${jar_dir}/Test.jar /data/local/tmp	${DEVICE_ID}				
+							
+TEST_END_LOG_ADB	[Arguments]	${DEVICE_ID}					
+	getPicture	${ENDPDIR}	${TEST NAME}END	${DEVICE_ID}			
+	goHome						
+	logcat_end	${DEVICE_ID}					
+	adb_disconnect	${DEVICE_ID}					
+							
+TEST_INIT_ADB	[Arguments]	${DEVICE_ID}					
+	connectService	${DEVICE_ID}					
+	Sleep	4s					
+	adbCmd	push ${jar_dir}/Test.jar /data/local/tmp	${DEVICE_ID}				
+							
+TEST_END_ADB	[Arguments]	${DEVICE_ID}					
+	getPicture	${ENDPDIR}	${TEST NAME}END	${DEVICE_ID}			
+	goHome						
+	adb_disconnect	${DEVICE_ID}					
